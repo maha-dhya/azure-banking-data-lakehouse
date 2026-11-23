@@ -5,6 +5,14 @@
 			"referenceName": "LS_ADLS_BankingLakehouse",
 			"type": "LinkedServiceReference"
 		},
+		"parameters": {
+			"pDirectory": {
+				"type": "string"
+			},
+			"pFileName": {
+				"type": "string"
+			}
+		},
 		"annotations": [],
 		"type": "DelimitedText",
 		"typeProperties": {
