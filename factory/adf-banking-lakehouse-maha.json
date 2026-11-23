@@ -1,0 +1,16 @@
+{
+	"name": "adf-banking-lakehouse-maha",
+	"properties": {
+		"trustModeClaimForMi": {
+			"value": "Disabled",
+			"editable": true,
+			"isExplicitlySet": false
+		}
+	},
+	"location": "indiasouthcentral",
+	"identity": {
+		"type": "SystemAssigned",
+		"principalId": "7a398d92-20a1-48c2-96d4-7b7ee69fad79",
+		"tenantId": "6d3ee25b-cf07-45f3-b53d-f80782a694c8"
+	}
+}
