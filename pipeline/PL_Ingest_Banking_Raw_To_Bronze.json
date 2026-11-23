@@ -1,0 +1,7 @@
+{
+	"name": "PL_Ingest_Banking_Raw_To_Bronze",
+	"properties": {
+		"description": "Ingest synthetic banking source CSV files from the ADLS Gen2 raw layer into the Bronze layer using Azure Data Factory.",
+		"annotations": []
+	}
+}
