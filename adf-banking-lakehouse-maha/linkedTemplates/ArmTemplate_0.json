@@ -30,7 +30,7 @@
 			"dependsOn": []
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DS_Banking_Raw_CSV')]",
+			"name": "[concat(parameters('factoryName'), '/DS_Banking_Bronze_CSV')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -38,13 +38,29 @@
 					"referenceName": "LS_ADLS_BankingLakehouse",
 					"type": "LinkedServiceReference"
 				},
+				"parameters": {
+					"pDirectory": {
+						"type": "string",
+						"defaultValue": "bronze"
+					},
+					"pFileName": {
+						"type": "string",
+						"defaultValue": "transactions.csv"
+					}
+				},
 				"annotations": [],
 				"type": "DelimitedText",
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "transactions.csv",
-						"folderPath": "raw",
+						"fileName": {
+							"value": "@dataset().pFileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().pDirectory",
+							"type": "Expression"
+						},
 						"fileSystem": "banking-lakehouse"
 					},
 					"columnDelimiter": ",",
@@ -59,7 +75,7 @@
 			]
 		},
 		{
-			"name": "[concat(parameters('factoryName'), '/DS_Banking_Bronze_CSV')]",
+			"name": "[concat(parameters('factoryName'), '/DS_Banking_Ingestion_Metadata')]",
 			"type": "Microsoft.DataFactory/factories/datasets",
 			"apiVersion": "2018-06-01",
 			"properties": {
@@ -72,8 +88,8 @@
 				"typeProperties": {
 					"location": {
 						"type": "AzureBlobFSLocation",
-						"fileName": "transactions.csv",
-						"folderPath": "bronze",
+						"fileName": "banking_ingestion_metadata.csv",
+						"folderPath": "control",
 						"fileSystem": "banking-lakehouse"
 					},
 					"columnDelimiter": ",",
@@ -85,6 +101,202 @@
 			},
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_BankingLakehouse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DS_Banking_Raw_CSV')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "LS_ADLS_BankingLakehouse",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"pDirectory": {
+						"type": "string",
+						"defaultValue": "raw"
+					},
+					"pFileName": {
+						"type": "string",
+						"defaultValue": "transactions.csv"
+					}
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobFSLocation",
+						"fileName": {
+							"value": "@dataset().pFileName",
+							"type": "Expression"
+						},
+						"folderPath": {
+							"value": "@dataset().pDirectory",
+							"type": "Expression"
+						},
+						"fileSystem": "banking-lakehouse"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/linkedServices/LS_ADLS_BankingLakehouse')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PL_Ingest_All_Banking_Tables')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "LK_Get_Banking_Metadata",
+						"description": "Reads banking table ingestion configuration for metadata-driven processing.",
+						"type": "Lookup",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "DelimitedTextSource",
+								"storeSettings": {
+									"type": "AzureBlobFSReadSettings",
+									"recursive": true,
+									"enablePartitionDiscovery": false
+								},
+								"formatSettings": {
+									"type": "DelimitedTextReadSettings"
+								}
+							},
+							"dataset": {
+								"referenceName": "DS_Banking_Ingestion_Metadata",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"firstRowOnly": false
+						}
+					},
+					{
+						"name": "ForEach1",
+						"type": "ForEach",
+						"dependsOn": [
+							{
+								"activity": "LK_Get_Banking_Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"items": {
+								"value": "@activity('LK_Get_Banking_Metadata').output.value",
+								"type": "Expression"
+							},
+							"isSequential": true,
+							"activities": [
+								{
+									"name": "Copy_Current_Table_To_Bronze",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.12:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobFSReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "DS_Banking_Raw_CSV",
+											"type": "DatasetReference",
+											"parameters": {
+												"pDirectory": {
+													"value": "@item().sourceDirectory",
+													"type": "Expression"
+												},
+												"pFileName": {
+													"value": "@item().sourceFileName",
+													"type": "Expression"
+												}
+											}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "DS_Banking_Bronze_CSV",
+											"type": "DatasetReference",
+											"parameters": {
+												"pDirectory": {
+													"value": "@item().sinkDirectory",
+													"type": "Expression"
+												},
+												"pFileName": {
+													"value": "@item().sinkFileName",
+													"type": "Expression"
+												}
+											}
+										}
+									]
+								}
+							]
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"annotations": []
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/datasets/DS_Banking_Ingestion_Metadata')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Banking_Raw_CSV')]",
+				"[concat(variables('factoryId'), '/datasets/DS_Banking_Bronze_CSV')]"
 			]
 		},
 		{
