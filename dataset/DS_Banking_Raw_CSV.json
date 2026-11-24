@@ -7,10 +7,12 @@
 		},
 		"parameters": {
 			"pDirectory": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "raw"
 			},
 			"pFileName": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "transactions.csv"
 			}
 		},
 		"annotations": [],
@@ -22,7 +24,10 @@
 					"value": "@dataset().pFileName",
 					"type": "Expression"
 				},
-				"folderPath": "@dataset().pDirectory",
+				"folderPath": {
+					"value": "@dataset().pDirectory",
+					"type": "Expression"
+				},
 				"fileSystem": "banking-lakehouse"
 			},
 			"columnDelimiter": ",",
