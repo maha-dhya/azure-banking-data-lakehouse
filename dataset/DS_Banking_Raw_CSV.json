@@ -18,8 +18,11 @@
 		"typeProperties": {
 			"location": {
 				"type": "AzureBlobFSLocation",
-				"fileName": "transactions.csv",
-				"folderPath": "raw",
+				"fileName": {
+					"value": "@dataset().pFileName",
+					"type": "Expression"
+				},
+				"folderPath": "@dataset().pDirectory",
 				"fileSystem": "banking-lakehouse"
 			},
 			"columnDelimiter": ",",
