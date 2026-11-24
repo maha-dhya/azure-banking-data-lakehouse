@@ -7,10 +7,12 @@
 		},
 		"parameters": {
 			"pDirectory": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "bronze"
 			},
 			"pFileName": {
-				"type": "string"
+				"type": "string",
+				"defaultValue": "transactions.csv"
 			}
 		},
 		"annotations": [],
