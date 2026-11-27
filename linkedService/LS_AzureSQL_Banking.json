@@ -1,0 +1,14 @@
+{
+	"name": "LS_AzureSQL_Banking",
+	"properties": {
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"server": "sqlsrv-maha-practice-2026.database.windows.net",
+			"database": "sqldb-banking-practice",
+			"encrypt": "mandatory",
+			"trustServerCertificate": false,
+			"authenticationType": "SystemAssignedManagedIdentity"
+		}
+	}
+}
