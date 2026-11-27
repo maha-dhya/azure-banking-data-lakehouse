@@ -8,6 +8,9 @@
 		"LS_ADLS_BankingLakehouse_properties_typeProperties_url": {
 			"value": "https://stbankinglakehouse01.dfs.core.windows.net/"
 		},
+		"LS_ADLS_Banking_properties_typeProperties_url": {
+			"value": "https://stbankinglakehouse01.dfs.core.windows.net/"
+		},
 		"containerUri": {
 			"value": ""
 		},
