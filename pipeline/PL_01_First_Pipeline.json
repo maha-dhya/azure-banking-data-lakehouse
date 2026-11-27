@@ -1,6 +1,17 @@
 {
 	"name": "PL_01_First_Pipeline",
 	"properties": {
+		"activities": [
+			{
+				"name": "Wait_10_Seconds",
+				"type": "Wait",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"waitTimeInSeconds": 10
+				}
+			}
+		],
 		"annotations": []
 	}
 }
